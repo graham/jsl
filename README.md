@@ -118,13 +118,14 @@ function post(accum) {
 ```
 
 # Todo
-  [ ] --fail (allow javascript errors to stop iteration
-  [ ] --stats (allow for some numbers reporting)
-  [ ] --append should act like --output
-  [ ] test coverage for --filter
-  [ ] test coverage for --dedupe
-  [x] test coverage for --iter
-  [ ] test coverage for --accum
+
+    [ ] --fail (allow javascript errors to stop iteration
+    [ ] --stats (allow for some numbers reporting)
+    [ ] --append should act like --output
+    [ ] test coverage for --filter
+    [ ] test coverage for --dedupe
+    [x] test coverage for --iter
+    [ ] test coverage for --accum
 
 # Feedback and Contributions
 This is a small personal project, I've found it very useful. If you have an idea for improvements or would like to submit changes, feel free to do so, or open an issue.
