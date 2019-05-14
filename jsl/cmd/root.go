@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -136,8 +135,8 @@ var RootCmd = &cobra.Command{
 			if err != nil {
 				panic(err)
 			}
+			output_writer = outputFileHandle
 			defer outputFileHandle.Close()
-			output_writer = bufio.NewWriter(outputFileHandle)
 		} else {
 			output_writer = os.Stdout
 		}
