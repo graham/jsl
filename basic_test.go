@@ -169,6 +169,38 @@ func TestIterator_WithDedupe(t *testing.T) {
 	}
 }
 
+func TestIterator_WithAccum(t *testing.T) {
+	var results []interface{} = []interface{}{}
+
+	iter, _ := NewIterator(&IterConfig{
+		Emitter: func(i interface{}) {
+			results = append(results, i)
+		},
+		Pre:         "{count:0}",
+		Post:        "accum.count",
+		Accumulator: "accum.count+=i.Double",
+	})
+
+	iter.PreIteration()
+
+	for i := 0; i < 10; i += 1 {
+		err := iter.IterFunc(InputObject{I: i, Double: i * 2})
+		if err != nil {
+			t.Errorf("iteration failed.")
+		}
+	}
+
+	iter.PostIteration()
+
+	if len(results) != 1 {
+		t.Errorf("Incorrect result length.")
+	}
+
+	if results[0].(goja.Value).ToInteger() != 90 {
+		t.Errorf("Sum Accumulator failed.")
+	}
+}
+
 // func BenchmarkHello(b *testing.B) {
 // 	for i := 0; i < b.N; i++ {
 
