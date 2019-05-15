@@ -28,10 +28,11 @@ var debugMode bool
 var jsonEncode bool
 var asText bool
 var parallelExecution bool
+var failOnException bool
 
 var outputFilename string
 var inputFilename string
-var appendToOutput bool
+var appendFilename string
 
 var stats bool
 
@@ -41,6 +42,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&debugMode, "debug", false, "enable debug mode (prints to stderr)")
 	RootCmd.PersistentFlags().BoolVar(&jsonEncode, "json", true, "JSON.stringify results.")
 	RootCmd.PersistentFlags().BoolVar(&asText, "text", false, "Output as text, not encoded JSON.")
+	RootCmd.PersistentFlags().BoolVar(&failOnException, "fail", false, "Stop iteration on uncaught javascript exception")
+
 	//RootCmd.PersistentFlags().BoolVar(&parallelExecution, "par", false, "Parallel execution (does not preserve order).")
 
 	// command line options for code.
@@ -55,7 +58,7 @@ func init() {
 	RootCmd.PersistentFlags().StringVar(&outputFilename, "output", "", "output filename for results (default stdout)")
 	RootCmd.PersistentFlags().StringVar(&inputFilename, "input", "", "input filename for results (default stdin)")
 
-	RootCmd.PersistentFlags().BoolVar(&appendToOutput, "append", false, "append to output file instead of creating new result set.")
+	RootCmd.PersistentFlags().StringVar(&appendFilename, "append", "", "append to output file instead of creating new result set.")
 }
 
 func initConfig() {
@@ -123,15 +126,18 @@ var RootCmd = &cobra.Command{
 		}
 
 		var output_writer io.Writer
+		var filename string
+		file_mode := os.O_CREATE | os.O_WRONLY
 
 		if len(outputFilename) > 0 {
-			mode := os.O_CREATE | os.O_WRONLY
+			filename = outputFilename
+		} else if len(appendFilename) > 0 {
+			filename = appendFilename
+			file_mode = os.O_APPEND | os.O_CREATE | os.O_WRONLY
+		}
 
-			if appendToOutput {
-				mode = os.O_APPEND | os.O_CREATE | os.O_WRONLY
-			}
-
-			outputFileHandle, err := os.OpenFile(outputFilename, mode, 0644)
+		if len(filename) > 0 {
+			outputFileHandle, err := os.OpenFile(filename, file_mode, 0644)
 			if err != nil {
 				panic(err)
 			}
@@ -184,8 +190,13 @@ var RootCmd = &cobra.Command{
 
 				for obj := range parsed_objects {
 					err := iter.IterFunc(obj)
-					if debugMode && err != nil {
-						log.Println(err)
+					if err != nil {
+						if failOnException {
+							log.Println("fail", err)
+							return
+						} else if debugMode {
+							log.Println("debug", err)
+						}
 					}
 
 				}
@@ -198,7 +209,12 @@ var RootCmd = &cobra.Command{
 			}()
 		}
 
-		jsl.ReadJsonObjectsUntilEOF(parsed_objects, input_reader)
+		err := jsl.ReadJsonObjectsUntilEOF(parsed_objects, input_reader, failOnException)
+
+		if err != nil {
+			panic(err)
+		}
+
 		wg.Wait()
 		close(output_objects)
 		<-output_done
