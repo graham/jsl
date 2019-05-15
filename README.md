@@ -122,9 +122,9 @@ function post(accum) {
  - [ ] --fail (allow javascript errors to stop iteration
  - [ ] --stats (allow for some numbers reporting)
  - [ ] --append should act like --output
- - [ ] test coverage for --filter
- - [ ] test coverage for --dedupe
- - [x] test coverage for --iter
+ - [x] test coverage for --filter
+ - [x] test coverage for --dedupe
+ - [ ] test coverage for --iter
  - [ ] test coverage for --accum
 
 # Feedback and Contributions

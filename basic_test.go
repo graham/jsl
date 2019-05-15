@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -23,7 +24,32 @@ var INPUT_TEXT string = `{"i": 0, "double": 0}
 {"i": 9, "double": 18}
 `
 
-func TestIterator(t *testing.T) {
+type InputObject struct {
+	I      int
+	Double int
+	Name   string
+}
+
+func GojaValueToStruct(value *goja.Object, i interface{}) error {
+	var b []byte
+	var err error
+
+	b, err = json.Marshal(value)
+
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(b, i)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func TestIteratorWithString(t *testing.T) {
 	r := strings.NewReader(INPUT_TEXT)
 
 	var content string
@@ -76,44 +102,75 @@ func TestIterator(t *testing.T) {
 	}
 }
 
-type Payload struct {
-	Value int
-}
+func TestIterator_WithFilter(t *testing.T) {
+	var results []interface{} = []interface{}{}
 
-func TestAccumulator(t *testing.T) {
-	results := make([]int64, 0)
-
-	iter, err := NewIterator(&IterConfig{
+	iter, _ := NewIterator(&IterConfig{
 		Emitter: func(i interface{}) {
-			results = append(results, i.(goja.Value).ToInteger())
+			results = append(results, i)
 		},
-		Iter: "i.Value * 2",
+		Filter: "i.Double < 10",
+		Iter:   "i",
 	})
 
-	if err != nil {
-		t.Errorf("Failed to create iterator.")
+	iter.PreIteration()
+
+	for i := 0; i < 10; i += 1 {
+		err := iter.IterFunc(InputObject{I: i, Double: i * 2})
+		if err != nil {
+			t.Errorf("iteration failed.")
+		}
 	}
 
-	inputs := make(chan interface{}, 5)
+	iter.PostIteration()
 
-	inputs <- Payload{Value: 2}
-	inputs <- Payload{Value: 4}
-
-	close(inputs)
-
-	err = iter.HandleChannel(inputs, true)
-
-	if err != nil {
-		panic(err)
-	}
-
-	if results[0] != 4 && results[1] != 8 {
-		t.Errorf("results not as expected.")
+	if len(results) != 5 {
+		fmt.Println(results)
+		t.Errorf("Incorrect result length.")
 	}
 }
 
-func BenchmarkHello(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+func TestIterator_WithDedupe(t *testing.T) {
+	var results []interface{} = []interface{}{}
 
+	iter, _ := NewIterator(&IterConfig{
+		Emitter: func(i interface{}) {
+			results = append(results, i)
+		},
+		Dedupe: "i.I % 2",
+		Iter:   "i",
+	})
+
+	iter.PreIteration()
+
+	for i := 0; i < 10; i += 1 {
+		err := iter.IterFunc(InputObject{I: i, Double: i * 2})
+		if err != nil {
+			t.Errorf("iteration failed.")
+		}
+	}
+
+	iter.PostIteration()
+
+	if len(results) != 2 {
+		t.Errorf("Incorrect result length.")
+	}
+
+	var target0 InputObject
+	if err := GojaValueToStruct(results[0].(*goja.Object), &target0); err != nil {
+		fmt.Println(err)
+		t.Errorf("Goja value coerce failure.")
+	}
+
+	var target1 InputObject
+	if err := GojaValueToStruct(results[1].(*goja.Object), &target1); err != nil {
+		fmt.Println(err)
+		t.Errorf("Goja value coerce failure.")
 	}
 }
+
+// func BenchmarkHello(b *testing.B) {
+// 	for i := 0; i < b.N; i++ {
+
+// 	}
+// }
