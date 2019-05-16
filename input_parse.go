@@ -12,7 +12,7 @@ import (
 	"unicode"
 )
 
-func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader) {
+func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader, failOnException bool) error {
 	defer close(objs)
 
 	reader := bufio.NewReader(r)
@@ -23,7 +23,7 @@ func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader) {
 		line, readErr := reader.ReadString('\n')
 
 		if readErr != nil && readErr != io.EOF {
-			return
+			return nil
 		}
 
 		line = strings.TrimSpace(line)
@@ -32,7 +32,7 @@ func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader) {
 			if readErr == nil {
 				continue
 			} else if readErr == io.EOF {
-				return
+				return nil
 			} else {
 				continue
 			}
@@ -41,7 +41,10 @@ func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader) {
 		json_obj, err := LoadLine(line)
 
 		if err != nil {
-			fmt.Errorf("%s", err)
+			fmt.Errorf(fmt.Sprintf("json_decode_err: %s", err))
+			if failOnException {
+				return err
+			}
 		}
 
 		if json_obj != nil {
@@ -49,7 +52,7 @@ func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader) {
 		}
 
 		if readErr == io.EOF {
-			return
+			return nil
 		}
 
 	}
