@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dop251/goja"
 	"github.com/graham/jsl"
 	"github.com/spf13/cobra"
 )
@@ -152,7 +153,7 @@ var RootCmd = &cobra.Command{
 			if jsonEncode && !asText {
 				enc := json.NewEncoder(output_writer)
 				for i := range output_objects {
-					enc.Encode(i)
+					enc.Encode(i.(goja.Value).Export())
 				}
 			} else {
 				for i := range output_objects {
