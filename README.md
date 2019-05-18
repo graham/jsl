@@ -5,6 +5,14 @@ I found myself parsing through a ton of JSON at work, on my personal projects, a
 
 `jsl` tries to keep things simple, but powerful (a surprisingly difficult combo to engineer).
 
+----
+
+## Attribution
+
+This project wouldn't be possible without the amazing [goja](https://github.com/dop251/goja) go package. It's fast, easy to use, well written and does most of the work for `jsl`. I highly recommend you check it out.
+
+----
+
 | The most important thing to remember is that JSL is silent on javascript errors unless you specify debug, this is because often, the schema isn't uniform, and accessors fail. If you're not seeing the output you want, make sure you use debug.
 
 I'll add a `--fail` so that you can hard fail on javascript errors. #todo
