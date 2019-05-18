@@ -5,6 +5,26 @@ I found myself parsing through a ton of JSON at work, on my personal projects, a
 
 `jsl` tries to keep things simple, but powerful (a surprisingly difficult combo to engineer).
 
+jsl attempts to adhere to the unix command line tool principle, use stdin/stdout when you can, allow for lots of options. Here are some examples:
+
+ | assume input.json is a file with a single json object per line.
+
+```
+  1) Return only even numbers:
+     jsl --filter="i%2==0"
+
+  2) Return only even numbers but only emit once:
+     jsl --filter="i%2==0" --dedupe="i"
+
+  3) Filter out odd numbers, and multiply even numbers by 10.
+     jsl --filter="i%2==0" --iter="i*10"
+
+  4) Count the number of lines:
+     jsl --pre="{count:0}" --accum="accum.count+=1" --post="accum.count"
+```
+
+ | author's note, need more examples here :)
+
 ----
 
 ## Attribution
