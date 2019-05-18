@@ -23,7 +23,7 @@ func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader, failOnException
 		line, readErr := reader.ReadString('\n')
 
 		if readErr != nil && readErr != io.EOF {
-			return nil
+			return readErr
 		}
 
 		line = strings.TrimSpace(line)
@@ -41,7 +41,7 @@ func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader, failOnException
 		json_obj, err := LoadLine(line)
 
 		if err != nil {
-			fmt.Errorf(fmt.Sprintf("json_decode_err: %s", err))
+			log.Printf(fmt.Sprintf("json_decode_err: %s", err))
 			if failOnException {
 				return err
 			}

@@ -1,9 +1,11 @@
 package jsl
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 
 	"github.com/dop251/goja"
 )
@@ -92,10 +94,31 @@ func NewIterator(ic *IterConfig) (*GojaIterator, error) {
 	iter.VM = goja.New()
 	iter.Emitter = ic.Emitter
 
+	iter.VM.Set("print", func(call goja.FunctionCall) goja.Value {
+		var result []byte
+		result, _ = json.Marshal(call)
+		log.Printf("%s\n", result)
+		return nil
+	})
+
 	_, err := iter.VM.RunString(DEFAULT_JS_CODE)
 
 	if err != nil {
 		panic(err)
+	}
+
+	if len(ic.LibraryFilename) > 0 {
+		iter.hasAccumulator = true
+		iter.hasIterator = true
+		iter.hasFilter = true
+		iter.hasDedupe = true
+
+		data, err := ioutil.ReadFile(ic.LibraryFilename)
+		if err != nil {
+			panic(err)
+		}
+
+		iter.RunString(string(data))
 	}
 
 	if len(ic.Iter) > 0 {
@@ -166,20 +189,6 @@ func NewIterator(ic *IterConfig) (*GojaIterator, error) {
 				ic.Dedupe,
 			),
 		)
-	}
-
-	if len(ic.LibraryFilename) > 0 {
-		iter.hasAccumulator = true
-		iter.hasIterator = true
-		iter.hasFilter = true
-		iter.hasDedupe = true
-
-		data, err := ioutil.ReadFile(ic.LibraryFilename)
-		if err != nil {
-			panic(err)
-		}
-
-		iter.RunString(string(data))
 	}
 
 	return &iter, nil

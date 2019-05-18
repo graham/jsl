@@ -92,7 +92,7 @@ var RootCmd = &cobra.Command{
 	Short: "iterate over json data and run javascript on it.",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		BUFFER_LEN := 50
+		BUFFER_LEN := 0
 
 		config := BuildConfigFromOptions()
 
