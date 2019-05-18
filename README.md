@@ -17,6 +17,12 @@ This project wouldn't be possible without the amazing [goja](https://github.com/
 
 I'll add a `--fail` so that you can hard fail on javascript errors. #todo
 
+# Install
+
+Installing `jsl` is as simple as
+
+``` go install github.com/graham/jsl/jsl ```
+
 # Help
 JSL provides decent command line options and descriptions:
 
