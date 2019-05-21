@@ -12,6 +12,122 @@ import (
 	"unicode"
 )
 
+func Nested_ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader, failOnException bool) error {
+	defer close(objs)
+
+	var dec *json.Decoder = json.NewDecoder(r)
+	var err error
+
+	if err == io.EOF {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	handle_object := func() error {
+		var json_obj interface{}
+		err := dec.Decode(&json_obj)
+
+		if err != nil && failOnException {
+			return err
+		}
+
+		objs <- json_obj
+
+		return nil
+	}
+
+	var handle_list func() error
+
+	handle_list = func() error {
+		token, err := dec.Token()
+
+		if err == io.EOF {
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+
+		switch token.(type) {
+		case json.Delim:
+			char := token.(json.Delim).String()
+			if char[0] == '[' {
+				for dec.More() {
+					err = handle_object()
+
+					if err != nil {
+						return err
+					}
+				}
+			} else {
+				return errors.New("Nested input must start with a [")
+			}
+		default:
+			return errors.New("Data is not nested in a list.")
+		}
+		return nil
+	}
+
+	return handle_list()
+}
+
+func Flatten_ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader, failOnException bool) error {
+	defer close(objs)
+
+	var dec *json.Decoder = json.NewDecoder(r)
+	var err error
+
+	if err == io.EOF {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	var handle_list func() error
+
+	handle_list = func() error {
+		for {
+			token, err := dec.Token()
+
+			if err == io.EOF {
+				return nil
+			}
+
+			if err != nil {
+				return err
+			}
+
+			switch token.(type) {
+			case json.Delim:
+				char := token.(json.Delim).String()
+				if char[0] == '[' {
+					err = handle_list()
+
+					if err != nil {
+						return err
+					}
+				} else {
+					return errors.New("Nested input must start with a [")
+				}
+			default:
+				objs <- token
+			}
+
+			if dec.More() == false {
+				return nil
+			}
+		}
+	}
+
+	return handle_list()
+}
+
 func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader, failOnException bool) error {
 	defer close(objs)
 
@@ -54,8 +170,9 @@ func ReadJsonObjectsUntilEOF(objs chan interface{}, r io.Reader, failOnException
 		if readErr == io.EOF {
 			return nil
 		}
-
 	}
+
+	return nil
 }
 
 func LoadLine(line string) (interface{}, error) {

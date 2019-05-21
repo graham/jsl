@@ -30,6 +30,8 @@ var jsonEncode bool
 var asText bool
 var parallelExecution bool
 var failOnException bool
+var dataIsNested bool
+var dataShouldFlatten bool
 
 var outputFilename string
 var inputFilename string
@@ -44,6 +46,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&jsonEncode, "json", true, "JSON.stringify results.")
 	RootCmd.PersistentFlags().BoolVar(&asText, "text", false, "Output as text, not encoded JSON.")
 	RootCmd.PersistentFlags().BoolVar(&failOnException, "fail", false, "Stop iteration on uncaught javascript exception")
+	RootCmd.PersistentFlags().BoolVar(&dataIsNested, "nested", false, "input is either a [] or {} and each item should be an iter step.")
+	RootCmd.PersistentFlags().BoolVar(&dataShouldFlatten, "flatten", false, "flatten all sub lists [1,[2],[3,4]] -> [1,2,3,4]")
 
 	//RootCmd.PersistentFlags().BoolVar(&parallelExecution, "par", false, "Parallel execution (does not preserve order).")
 
@@ -60,6 +64,7 @@ func init() {
 	RootCmd.PersistentFlags().StringVar(&inputFilename, "input", "", "input filename for results (default stdin)")
 
 	RootCmd.PersistentFlags().StringVar(&appendFilename, "append", "", "append to output file instead of creating new result set.")
+
 }
 
 func initConfig() {
@@ -210,7 +215,14 @@ var RootCmd = &cobra.Command{
 			}()
 		}
 
-		err := jsl.ReadJsonObjectsUntilEOF(parsed_objects, input_reader, failOnException)
+		var err error
+		if dataIsNested {
+			err = jsl.Nested_ReadJsonObjectsUntilEOF(parsed_objects, input_reader, failOnException)
+		} else if dataShouldFlatten {
+			err = jsl.Flatten_ReadJsonObjectsUntilEOF(parsed_objects, input_reader, failOnException)
+		} else {
+			err = jsl.ReadJsonObjectsUntilEOF(parsed_objects, input_reader, failOnException)
+		}
 
 		if err != nil {
 			panic(err)
