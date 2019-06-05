@@ -138,13 +138,15 @@ var RootCmd = &cobra.Command{
 			file_mode = os.O_APPEND | os.O_CREATE | os.O_WRONLY
 		}
 
+		var outputFileHandle *os.File
+
 		if len(filename) > 0 {
 			outputFileHandle, err := os.OpenFile(filename, file_mode, 0644)
 			if err != nil {
 				panic(err)
 			}
 			output_writer = outputFileHandle
-			defer outputFileHandle.Close()
+			flushAtEnd = true
 		} else {
 			output_writer = os.Stdout
 		}
@@ -227,5 +229,10 @@ var RootCmd = &cobra.Command{
 		wg.Wait()
 		close(output_objects)
 		<-output_done
+
+		if outputFileHandle != nil {
+			outputFileHandle.Flush()
+			outputFileHandle.Close()
+		}
 	},
 }
