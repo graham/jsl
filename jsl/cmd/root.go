@@ -78,10 +78,6 @@ func initConfig() {
 }
 
 func BuildConfigFromOptions() *jsl.IterConfig {
-	if accumCode == "" && iterCode == "" {
-		iterCode = "i"
-	}
-
 	return &jsl.IterConfig{
 		Iter:            iterCode,
 		Accumulator:     accumCode,

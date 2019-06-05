@@ -118,7 +118,13 @@ func NewIterator(ic *IterConfig) (*GojaIterator, error) {
 			panic(err)
 		}
 
-		iter.RunString(string(data))
+		log.Printf("Loading library file %s (%d)...\n", ic.LibraryFilename, len(data))
+
+		_, lib_err := iter.VM.RunString(string(data))
+
+		if lib_err != nil {
+			panic(lib_err)
+		}
 	}
 
 	if len(ic.Iter) > 0 {
@@ -194,8 +200,8 @@ func NewIterator(ic *IterConfig) (*GojaIterator, error) {
 	return &iter, nil
 }
 
-func (it *GojaIterator) RunString(s string) {
-	it.VM.RunString(s)
+func (it *GojaIterator) RunString(s string) (goja.Value, error) {
+	return it.VM.RunString(s)
 }
 
 func (it *GojaIterator) PreIteration() error {
