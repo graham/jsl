@@ -146,7 +146,6 @@ var RootCmd = &cobra.Command{
 				panic(err)
 			}
 			output_writer = outputFileHandle
-			flushAtEnd = true
 		} else {
 			output_writer = os.Stdout
 		}
@@ -231,7 +230,7 @@ var RootCmd = &cobra.Command{
 		<-output_done
 
 		if outputFileHandle != nil {
-			outputFileHandle.Flush()
+			outputFileHandle.Sync()
 			outputFileHandle.Close()
 		}
 	},
