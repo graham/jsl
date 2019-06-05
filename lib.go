@@ -125,6 +125,10 @@ func NewIterator(ic *IterConfig) (*GojaIterator, error) {
 		if lib_err != nil {
 			panic(lib_err)
 		}
+	} else {
+		if len(ic.Iter) == 0 && len(ic.Accumulator) == 0 {
+			ic.Iter = "i"
+		}
 	}
 
 	if len(ic.Iter) > 0 {
