@@ -8,13 +8,13 @@ import (
 )
 
 func init() {
-	RootCmd.AddCommand(helpCmd)
+	RootCmd.AddCommand(exampleCmd)
 }
 
-var helpCmd = &cobra.Command{
-	Use:   "help",
-	Short: "Print the help",
-	Long:  `All software has helps.`,
+var exampleCmd = &cobra.Command{
+	Use:   "example",
+	Short: "Print the example",
+	Long:  `All software has examples.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 0 && args[0] == "packages" {
 			fmt.Println(jsl.DEFAULT_JS_CODE)
@@ -33,7 +33,7 @@ Order of operations
   call Post() emit if user defined.
 
 For more information about packages and external javascript files use:
-  jsl help packages
+  jsl example packages
 
 Examples:
   1) Return only even numbers:
